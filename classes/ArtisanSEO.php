@@ -9,7 +9,7 @@ class ArtisanSEO
 
     public function __construct()
     {
-        $this->apiURL = 'http://artisanseo.app';//'https://artisanseo.com';
+        $this->apiURL = 'https://artisanseo.com';
         $this->apiToken = get_option('artisanseo_token');
         add_action('init', array($this, 'init'));
         add_action('admin_init', array($this, 'initAdmin'));
