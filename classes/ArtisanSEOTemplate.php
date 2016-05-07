@@ -65,8 +65,11 @@ class ArtisanSEOTemplate
 
     private function getContent()
     {
-        $endpoint = $this->apiURL.'/api/template/'.$this->name.'/'.$this->page.'?token='.$this->apiToken;
-        $data = array();
+        $endpoint = $this->apiURL.'/api/template/'.$this->name.'/'.$this->page;
+        $data = array(
+            'token' => $this->apiToken,
+            'r' => time(),
+        );
         $client = new ArtisanSEOClient();
         $response = $client->call('GET', $endpoint, $data);
         $responseJSON = json_decode($response);
