@@ -19,17 +19,3 @@ if (!class_exists('ArtisanSEOClient')) {
     require_once __DIR__ . '/classes/ArtisanSEOClient.php';
 }
 $artisanSEO = new ArtisanSEO();
-
-
-
-function artisanseo_whitelist_options($options){
-    $added = array( 'artisan-seo' => array(
-        'artisanseo_token',
-        ),
-        'artisanseo_settings_page' => array(
-            'artisanseo_token',
-        ),
-    );
-    $options = add_option_whitelist( $added, $options );
-    return $options;
-}

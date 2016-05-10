@@ -20,14 +20,6 @@ class ArtisanSEOTemplate
         }
     }
 
-    private function templatePrefixes() //TODO - make editable
-    {
-        return array(
-            '/topic/' => 'keyword',
-            '/location/' => 'locator',
-        );
-    }
-
     public function setAPIToken($value){
         $this->apiToken = $value;
     }
@@ -41,17 +33,20 @@ class ArtisanSEOTemplate
         $this->name = '';
         $this->page = '';
         $this->valid = false;
+        $this->template = false;
     }
 
     public function updateAttributesFromPath($path)
     {
-        $templatePrefixes = $this->templatePrefixes();
+        $templates = $this->getTemplates();
         $this->setDefaultAttributes();
-        foreach ($templatePrefixes as $templatePath => $templateName) {
-            if (substr($path, 0, strlen($templatePath)) === $templatePath) {
-                $page = str_replace($templatePath, '', $path);
-                $this->name = $templateName;
-                $this->page = $page;
+        foreach ($templates as $template) {
+            $path = trim($path,'/');
+            if (substr($path, 0, strlen($template->url_prefix)) === $template->url_prefix) {
+                $page = str_replace($template->url_prefix, '', $path);
+                $this->template = $template;
+                $this->name = $template->type;
+                $this->page = trim($page,'/');
                 $this->valid = true;
             }
         }
@@ -63,9 +58,26 @@ class ArtisanSEOTemplate
         return $content;
     }
 
+    private function getTemplates(){
+        $endpoint = $this->apiURL.'/api/template';
+        $data = array(
+            'token' => $this->apiToken,
+            'r' => time(),
+        );
+        $client = new ArtisanSEOClient();
+        $response = $client->call('GET', $endpoint, $data);
+        $responseJSON = json_decode($response);
+        if (isset($responseJSON->project_templates)) {
+            $templates = $responseJSON->project_templates;
+        } else {
+            $templates = [];
+        }
+        return $templates;
+    }
+
     private function getContent()
     {
-        $endpoint = $this->apiURL.'/api/template/'.$this->name.'/'.$this->page;
+        $endpoint = $this->apiURL.'/api/template/'.$this->template->id.'/'.$this->page;
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),

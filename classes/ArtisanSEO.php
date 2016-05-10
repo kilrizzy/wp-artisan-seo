@@ -10,6 +10,9 @@ class ArtisanSEO
     public function __construct()
     {
         $this->apiURL = 'https://artisanseo.com';
+        if(!empty(ARTISAN_SEO_URL)){
+            $this->apiURL = ARTISAN_SEO_URL;
+        }
         $this->apiToken = get_option('artisanseo_token');
         add_action('init', array($this, 'init'));
         add_action('admin_init', array($this, 'initAdmin'));
@@ -79,8 +82,10 @@ class ArtisanSEO
             'apiToken' => $this->apiToken,
         ));
         $template->updateAttributesFromPath($this->getCurrentPath());
-        echo $template->display();
-        die();
+        if($template->valid){
+            echo $template->display();
+            die();
+        }
     }
 
     public function whitelistCustomOptions($whiteListOptions)
