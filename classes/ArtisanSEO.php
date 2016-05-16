@@ -9,7 +9,7 @@ class ArtisanSEO
 
     public function __construct()
     {
-        $this->apiURL = 'https://artisanseo.com';
+        $this->apiURL = 'https://artisanseo.com/api';
         if(!empty(ARTISAN_SEO_URL)){
             $this->apiURL = ARTISAN_SEO_URL;
         }
@@ -36,7 +36,8 @@ class ArtisanSEO
 
     public function init()
     {
-
+        //artisan_states_list
+        add_shortcode('artisanseo_states_list', array($this, 'displayStatesList'));
     }
 
     public function initAdmin()
@@ -77,13 +78,22 @@ class ArtisanSEO
 
     public function override404()
     {
-        $template = new ArtisanSEOTemplate(array(
+        /*$template = new ArtisanSEOTemplate(array(
             'apiURL' => $this->apiURL,
             'apiToken' => $this->apiToken,
         ));
         $template->updateAttributesFromPath($this->getCurrentPath());
         if($template->valid){
             echo $template->display();
+            die();
+        }*/
+        $page = new ArtisanSEOPage(array(
+            'apiURL' => $this->apiURL,
+            'apiToken' => $this->apiToken,
+        ));
+        $page->findByPath($this->getCurrentPath());
+        if($page->valid){
+            echo $page->display();
             die();
         }
     }
@@ -138,6 +148,35 @@ class ArtisanSEO
         $path = $request["path"];
         $path = rtrim(str_replace(basename($_SERVER['SCRIPT_NAME']), '', $path), '/');
         return $path;
+    }
+
+    public function displayStatesList($atts){
+        $a = shortcode_atts(array(
+            'prefix' => false,
+        ), $atts);
+        $output = array();
+        $content = $this->getStatesList($a['prefix']);
+        $output[] = $content;
+        $output = implode("\n", $output);
+        return $output;
+    }
+
+    private function getStatesList($urlPrefix=false){
+        $endpoint = $this->apiURL.'/state/list';
+        $data = array(
+            'token' => $this->apiToken,
+            'r' => time(),
+            'url_prefix' => $urlPrefix,
+        );
+        $client = new ArtisanSEOClient();
+        $responseJSON = $client->call('GET', $endpoint, $data);
+        $response = json_decode($responseJSON);
+        if (isset($response->output)) {
+            $content = $response->output;
+        } else {
+            $content = print_r($response, true);
+        }
+        return $content;
     }
 
 }
