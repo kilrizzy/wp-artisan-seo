@@ -48,7 +48,7 @@ class ArtisanSEOPage
     }
 
     public function getPages(){
-        $endpoint = $this->apiURL.'/api/page';
+        $endpoint = $this->apiURL.'/page';
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),
@@ -71,12 +71,14 @@ class ArtisanSEOPage
 
     private function getContent()
     {
+        parse_str($_SERVER['QUERY_STRING'], $queryParameters);
         $endpoint = $this->apiURL.'/page/find';
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),
             'uri' => $this->path,
         );
+        $data = array_merge($queryParameters,$data);
         $client = new ArtisanSEOClient();
         $responseJSON = $client->call('GET', $endpoint, $data);
         $response = json_decode($responseJSON);

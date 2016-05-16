@@ -36,7 +36,6 @@ class ArtisanSEO
 
     public function init()
     {
-        //artisan_states_list
         add_shortcode('artisanseo_states_list', array($this, 'displayStatesList'));
     }
 
@@ -78,15 +77,6 @@ class ArtisanSEO
 
     public function override404()
     {
-        /*$template = new ArtisanSEOTemplate(array(
-            'apiURL' => $this->apiURL,
-            'apiToken' => $this->apiToken,
-        ));
-        $template->updateAttributesFromPath($this->getCurrentPath());
-        if($template->valid){
-            echo $template->display();
-            die();
-        }*/
         $page = new ArtisanSEOPage(array(
             'apiURL' => $this->apiURL,
             'apiToken' => $this->apiToken,
