@@ -79,7 +79,7 @@ class ArtisanSEO
     {
         $path = $this->getCurrentPath();
         //performance - don't run if a 404 file
-        if(!empty($path) && strstr($path,'.')){
+        if(!empty($path) && !strstr($path,'.')){
             $page = new ArtisanSEOPage(array(
                 'apiURL' => $this->apiURL,
                 'apiToken' => $this->apiToken,
