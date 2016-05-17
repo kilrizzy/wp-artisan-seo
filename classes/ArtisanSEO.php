@@ -77,14 +77,18 @@ class ArtisanSEO
 
     public function override404()
     {
-        $page = new ArtisanSEOPage(array(
-            'apiURL' => $this->apiURL,
-            'apiToken' => $this->apiToken,
-        ));
-        $page->findByPath($this->getCurrentPath());
-        if($page->valid){
-            echo $page->display();
-            die();
+        $path = $this->getCurrentPath();
+        //performance - don't run if a 404 file
+        if(!empty($path) && strstr($path,'.')){
+            $page = new ArtisanSEOPage(array(
+                'apiURL' => $this->apiURL,
+                'apiToken' => $this->apiToken,
+            ));
+            $page->findByPath($path);
+            if($page->valid){
+                echo $page->display();
+                die();
+            }
         }
     }
 
