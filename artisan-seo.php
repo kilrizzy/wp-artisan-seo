@@ -3,12 +3,20 @@
  * Plugin Name: ArtisanSEO
  * Plugin URI: http://artisanseo.com
  * Description: Pull ArtisanSEO Templates
- * Version: 0.1.0
+ * Version: 0.1.2
  * Author: Kilroy Web Development
  * Author URI: http://kilroyweb.com
  * License: GPL2
  */
-require_once __DIR__ . '/updater.php';
+
+require_once __DIR__ . '/plugin-update-checker/plugin-update-checker.php';
+$className = PucFactory::getLatestClassVersion('PucGitHubChecker');
+$myUpdateChecker = new $className(
+    'https://github.com/kilrizzy/wp-artisan-seo/',
+    __FILE__,
+    'master'
+);
+
 if (!class_exists('ArtisanSEO')) {
     require_once __DIR__ . '/classes/ArtisanSEO.php';
 }
