@@ -10,7 +10,7 @@ class ArtisanSEO
     public function __construct()
     {
         $this->apiURL = 'https://artisanseo.com/api';
-        if(!empty(ARTISAN_SEO_URL)){
+        if( defined(ARTISAN_SEO_URL) && !empty(ARTISAN_SEO_URL)){
             $this->apiURL = ARTISAN_SEO_URL;
         }
         $this->apiToken = get_option('artisanseo_token');
