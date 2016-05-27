@@ -168,7 +168,7 @@ class ArtisanSEO
         if (isset($response->output)) {
             $content = $response->output;
         } else {
-            $content = print_r($response, true);
+            $content = '<span style="color:#FF0000;">'.print_r($responseJSON, true).'</span>';
         }
         return $content;
     }
