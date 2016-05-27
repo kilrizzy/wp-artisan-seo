@@ -7,9 +7,6 @@ class ArtisanSEOClient{
 
     function call($method, $url, $data = false)
     {
-        if(!function_exists('curl_version')){
-            return 'Error: CURL not enabled';
-        }
         $curl = curl_init();
         switch ($method) {
             case "POST":

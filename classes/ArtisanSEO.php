@@ -11,7 +11,10 @@ class ArtisanSEO
     {
         $this->apiURL = 'https://artisanseo.com/api';
         if(defined('ARTISAN_SEO_URL')){
-            $this->apiURL = ARTISAN_SEO_URL;
+            $newAPIURL = ARTISAN_SEO_URL;
+            if(!empty($newAPIURL)) {
+                $this->apiURL = $newAPIURL;
+            }
         }
         $this->apiToken = get_option('artisanseo_token');
         add_action('init', array($this, 'init'));
