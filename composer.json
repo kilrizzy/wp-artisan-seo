@@ -1,0 +1,13 @@
+{
+    "name": "artisan-seo/wp-artisan-seo",
+    "description": "Artisan SEO Wordpress",
+    "keywords": ["seo"],
+    "license": "MIT",
+    "type": "plugin",
+    "require-dev": {
+        "phpunit/phpunit": "~4.0"
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}
