@@ -40,6 +40,7 @@ class ArtisanSEO
     public function init()
     {
         add_shortcode('artisanseo_states_list', array($this, 'displayStatesList'));
+        add_shortcode('artisanseo_cities_list', array($this, 'displayCitiesList'));
     }
 
     public function initAdmin()
@@ -164,6 +165,37 @@ class ArtisanSEO
             'token' => $this->apiToken,
             'r' => time(),
             'url_prefix' => $urlPrefix,
+        );
+        $client = new ArtisanSEOClient();
+        $responseJSON = $client->call('GET', $endpoint, $data);
+        $response = json_decode($responseJSON);
+        if (isset($response->output)) {
+            $content = $response->output;
+        } else {
+            $content = '<span style="color:#FF0000;">'.print_r($responseJSON, true).'</span>';
+        }
+        return $content;
+    }
+
+    public function displayCitiesList($atts){
+        $a = shortcode_atts(array(
+            'prefix' => false,
+            'state' => false,
+        ), $atts);
+        $output = array();
+        $content = $this->getCitiesList($a['state'],$a['prefix']);
+        $output[] = $content;
+        $output = implode("\n", $output);
+        return $output;
+    }
+
+    private function getCitiesList($state,$urlPrefix=false){
+        $endpoint = $this->apiURL.'/city/list';
+        $data = array(
+            'token' => $this->apiToken,
+            'r' => time(),
+            'url_prefix' => $urlPrefix,
+            'state' => $state,
         );
         $client = new ArtisanSEOClient();
         $responseJSON = $client->call('GET', $endpoint, $data);
