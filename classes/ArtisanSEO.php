@@ -10,9 +10,9 @@ class ArtisanSEO
     public function __construct()
     {
         $this->apiURL = 'https://artisanseo.com/api';
-        if(defined('ARTISAN_SEO_URL')){
+        if (defined('ARTISAN_SEO_URL')) {
             $newAPIURL = ARTISAN_SEO_URL;
-            if(!empty($newAPIURL)) {
+            if (!empty($newAPIURL)) {
                 $this->apiURL = $newAPIURL;
             }
         }
@@ -81,19 +81,58 @@ class ArtisanSEO
 
     public function override404()
     {
-        $path = $this->getCurrentPath();
+        $pathRaw = $this->getCurrentPath();
         //performance - don't run if a 404 file
-        if(!empty($path) && !strstr($path,'.')){
+        if (!empty($pathRaw) && !strstr($pathRaw, '.')) {
+            $pathParts = $this->parsePathParts($pathRaw);
+            $path = $pathParts['path'];
             $page = new ArtisanSEOPage(array(
                 'apiURL' => $this->apiURL,
                 'apiToken' => $this->apiToken,
             ));
             $page->findByPath($path);
-            if($page->valid){
-                echo $page->display();
+            if ($page->valid) {
+                $query = $this->getQuery();
+                echo $page->display($query);
                 die();
             }
         }
+    }
+
+    public function getQuery(){
+        parse_str($_SERVER['QUERY_STRING'], $query);
+        $pathRaw = $this->getCurrentPath();
+        $pathParts = $this->parsePathParts($pathRaw);
+        $query = array_merge($query,$pathParts['query']);
+        return $query;
+    }
+
+    public function parsePathParts($path)
+    {
+        $pathParts = [];
+        $query = [];
+        $pathSegments = explode('/', $path);
+        $queryKeys = ['state', 'city', 'zipcode', 'keyword'];
+        $realPathSegmentSelect = true;
+        $realPathSegments = [];
+        foreach ($pathSegments as $key => $pathSegment) {
+            //Check if query mask
+            if (in_array($pathSegment, $queryKeys) && isset($pathSegments[$key + 1])) {
+                $realPathSegmentSelect = false;
+                $query[$pathSegment] = $pathSegments[$key + 1];
+            }
+            if ($realPathSegmentSelect) {
+                $realPathSegments[] = $pathSegment;
+            }
+        }
+        //The path might start with a keyword ie: url.com/state/state/NJ...
+        if (empty($realPathSegments) && !empty($pathSegments)) {
+            $realPathSegments[] = $pathSegments[0];
+        }
+        $realPath = implode('/', $realPathSegments);
+        $pathParts['path'] = $realPath;
+        $pathParts['query'] = $query;
+        return $pathParts;
     }
 
     public function whitelistCustomOptions($whiteListOptions)
@@ -145,10 +184,12 @@ class ArtisanSEO
         $request = parse_url($_SERVER['REQUEST_URI']);
         $path = $request["path"];
         $path = rtrim(str_replace(basename($_SERVER['SCRIPT_NAME']), '', $path), '/');
+        $path = trim($path, '/');
         return $path;
     }
 
-    public function displayStatesList($atts){
+    public function displayStatesList($atts)
+    {
         $a = shortcode_atts(array(
             'prefix' => false,
         ), $atts);
@@ -159,8 +200,9 @@ class ArtisanSEO
         return $output;
     }
 
-    private function getStatesList($urlPrefix=false){
-        $endpoint = $this->apiURL.'/state/list';
+    private function getStatesList($urlPrefix = false)
+    {
+        $endpoint = $this->apiURL . '/state/list';
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),
@@ -172,25 +214,27 @@ class ArtisanSEO
         if (isset($response->output)) {
             $content = $response->output;
         } else {
-            $content = '<span style="color:#FF0000;">'.print_r($responseJSON, true).'</span>';
+            $content = '<span style="color:#FF0000;">' . print_r($responseJSON, true) . '</span>';
         }
         return $content;
     }
 
-    public function displayCitiesList($atts){
+    public function displayCitiesList($atts)
+    {
         $a = shortcode_atts(array(
             'prefix' => false,
             'state' => false,
         ), $atts);
         $output = array();
-        $content = $this->getCitiesList($a['state'],$a['prefix']);
+        $content = $this->getCitiesList($a['state'], $a['prefix']);
         $output[] = $content;
         $output = implode("\n", $output);
         return $output;
     }
 
-    private function getCitiesList($state,$urlPrefix=false){
-        $endpoint = $this->apiURL.'/city/list';
+    private function getCitiesList($state, $urlPrefix = false)
+    {
+        $endpoint = $this->apiURL . '/city/list';
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),
@@ -203,7 +247,7 @@ class ArtisanSEO
         if (isset($response->output)) {
             $content = $response->output;
         } else {
-            $content = '<span style="color:#FF0000;">'.print_r($responseJSON, true).'</span>';
+            $content = '<span style="color:#FF0000;">' . print_r($responseJSON, true) . '</span>';
         }
         return $content;
     }

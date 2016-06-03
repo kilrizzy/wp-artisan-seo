@@ -35,7 +35,6 @@ class ArtisanSEOPage
 
     public function findByPath($path)
     {
-        $path = trim($path,'/');
         $pages = $this->getPages();
         foreach ($pages as $page) {
             if($page->fullURI == $path){
@@ -64,21 +63,20 @@ class ArtisanSEOPage
         return $pages;
     }
 
-    public function display(){
-        $content = $this->getContent();
+    public function display($query){
+        $content = $this->getContent($query);
         return $content;
     }
 
-    private function getContent()
+    private function getContent($query)
     {
-        parse_str($_SERVER['QUERY_STRING'], $queryParameters);
         $endpoint = $this->apiURL.'/page/find';
         $data = array(
             'token' => $this->apiToken,
             'r' => time(),
             'uri' => $this->path,
         );
-        $data = array_merge($queryParameters,$data);
+        $data = array_merge($query,$data);
         $client = new ArtisanSEOClient();
         $responseJSON = $client->call('GET', $endpoint, $data);
         $response = json_decode($responseJSON);
