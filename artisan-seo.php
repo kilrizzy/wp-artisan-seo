@@ -3,7 +3,7 @@
  * Plugin Name: ArtisanSEO
  * Plugin URI: http://artisanseo.com
  * Description: Pull ArtisanSEO Templates
- * Version: 0.1.12
+ * Version: 0.1.13
  * Author: Kilroy Web Development
  * Author URI: http://kilroyweb.com
  * License: GPL2

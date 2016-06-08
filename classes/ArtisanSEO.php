@@ -93,6 +93,7 @@ class ArtisanSEO
             $page->findByPath($path);
             if ($page->valid) {
                 $query = $this->getQuery();
+                status_header(200);
                 echo $page->display($query);
                 die();
             }
