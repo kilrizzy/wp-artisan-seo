@@ -6,6 +6,8 @@ class ArtisanSEO
     public $apiURL;
     public $apiToken;
     public $optionSections;
+    public $sitemapPath;
+    public $sitemapURISeparator;
 
     public function __construct()
     {
@@ -16,6 +18,8 @@ class ArtisanSEO
                 $this->apiURL = $newAPIURL;
             }
         }
+        $this->sitemapPath = 'artisan/sitemap';
+        $this->sitemapURISeparator = '-';
         $this->apiToken = get_option('artisanseo_token');
         add_action('init', array($this, 'init'));
         add_action('admin_init', array($this, 'initAdmin'));
@@ -41,7 +45,94 @@ class ArtisanSEO
     {
         add_shortcode('artisanseo_states_list', array($this, 'displayStatesList'));
         add_shortcode('artisanseo_cities_list', array($this, 'displayCitiesList'));
+        //Run on plugin activation?
+        $this->createQueryVariables();
+
+        $this->SetupRewriteHooks();
+        self::ActivateRewrite();
+
     }
+
+    //XML
+    public function SetupRewriteHooks() {
+        add_filter('rewrite_rules_array', array($this, 'createRewriteRules'), 1, 1);
+    }
+
+    public function createRewriteRules($wpRules) {
+        $artisanRules = array(
+            $this->sitemapPath.'(-+([a-zA-Z0-9_-]+))?\.xml$' => 'index.php?artisan_sitemap=params=$matches[2]',
+        );
+        return array_merge($artisanRules,$wpRules);
+    }
+
+    public static function ActivateRewrite() {
+        /** @var $wp_rewrite WP_Rewrite */
+        global $wp_rewrite;
+        $wp_rewrite->flush_rules(false);
+    }
+
+    //Perform redirect to display sitemap
+    public function performSitemapRedirect() {
+        global $wp_query;
+        if(!empty($wp_query->query_vars["artisan_sitemap"])) {
+            $wp_query->is_404 = false;
+            $wp_query->is_feed = true;
+            $this->showSitemap($wp_query->query_vars["artisan_sitemap"]);
+        }
+    }
+
+    public function showSitemap($options) {
+        $queryItems = explode(';',$options);
+        $queryData = [];
+        foreach($queryItems as $query){
+            $queryDataItem = explode('=',$query);
+            if(isset($queryDataItem[0]) && isset($queryDataItem[1])){
+                $queryData[$queryDataItem[0]] = $queryDataItem[1];
+            }
+        }
+        $params = [];
+        if(isset($queryData['params'])){
+            $params = $queryData['params'];
+        }
+        $content = $this->loadSitemapContent($params);
+        echo $content;
+        die();
+    }
+
+    public function loadSitemapContent($uri){
+        $endpoint = $this->apiURL . '/project/sitemap';
+        $data = array(
+            'token' => $this->apiToken,
+            'r' => time(),
+            'sitemapURI' => $uri,
+            'sitemapPath' => $this->sitemapPath,
+            'sitemapURISeparator' => $this->sitemapURISeparator,
+        );
+        $client = new ArtisanSEOClient();
+        $responseJSON = $client->call('GET', $endpoint, $data);
+        $response = json_decode($responseJSON);
+        if (isset($response->output)) {
+            $content = $response->output;
+        } else {
+            $content = '<span style="color:#FF0000;">' . print_r($responseJSON, true) . '</span>';
+        }
+        return $content;
+
+
+    }
+
+    public function createQueryVariables() {
+        add_filter('query_vars', array($this, 'registerQueryVariables'), 1, 1);
+        add_filter('template_redirect', array($this, 'performSitemapRedirect'), 1, 0);
+    }
+
+    //Add "artisan_sitemap" var to wp
+    public function registerQueryVariables($vars) {
+        array_push($vars, 'artisan_sitemap');
+        return $vars;
+    }
+
+    //--XML
 
     public function initAdmin()
     {
