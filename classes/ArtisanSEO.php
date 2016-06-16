@@ -85,7 +85,7 @@ class ArtisanSEO
         if(!empty($wp_query->query_vars["artisan_sitemap_index"])) {
             $wp_query->is_404 = false;
             $wp_query->is_feed = true;
-            $this->showSitemapIndex($wp_query->query_vars["artisan_sitemap"]);
+            $this->showSitemapIndex($wp_query->query_vars["artisan_sitemap_index"]);
         }
     }
 
