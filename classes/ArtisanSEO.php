@@ -7,6 +7,7 @@ class ArtisanSEO
     public $apiToken;
     public $optionSections;
     public $sitemapPath;
+    public $sitemapIndexPath;
     public $sitemapURISeparator;
 
     public function __construct()
@@ -19,6 +20,7 @@ class ArtisanSEO
             }
         }
         $this->sitemapPath = 'artisan/sitemap';
+        $this->sitemapIndexPath = 'sitemap-index.xml';
         $this->sitemapURISeparator = '-';
         $this->apiToken = get_option('artisanseo_token');
         add_action('init', array($this, 'init'));
@@ -49,7 +51,7 @@ class ArtisanSEO
         $this->createQueryVariables();
 
         $this->SetupRewriteHooks();
-        self::ActivateRewrite();
+        $this->ActivateRewrite();
 
     }
 
@@ -61,11 +63,12 @@ class ArtisanSEO
     public function createRewriteRules($wpRules) {
         $artisanRules = array(
             $this->sitemapPath.'(-+([a-zA-Z0-9_-]+))?\.xml$' => 'index.php?artisan_sitemap=params=$matches[2]',
+            $this->sitemapIndexPath.'$' => 'index.php?artisan_sitemap_index=params=$matches[2]',
         );
         return array_merge($artisanRules,$wpRules);
     }
 
-    public static function ActivateRewrite() {
+    public function ActivateRewrite() {
         /** @var $wp_rewrite WP_Rewrite */
         global $wp_rewrite;
         $wp_rewrite->flush_rules(false);
@@ -78,6 +81,11 @@ class ArtisanSEO
             $wp_query->is_404 = false;
             $wp_query->is_feed = true;
             $this->showSitemap($wp_query->query_vars["artisan_sitemap"]);
+        }
+        if(!empty($wp_query->query_vars["artisan_sitemap_index"])) {
+            $wp_query->is_404 = false;
+            $wp_query->is_feed = true;
+            $this->showSitemapIndex($wp_query->query_vars["artisan_sitemap"]);
         }
     }
 
@@ -97,6 +105,40 @@ class ArtisanSEO
         $content = $this->loadSitemapContent($params);
         echo $content;
         die();
+    }
+
+    public function showSitemapIndex($options) {
+        $queryItems = explode(';',$options);
+        $queryData = [];
+        foreach($queryItems as $query){
+            $queryDataItem = explode('=',$query);
+            if(isset($queryDataItem[0]) && isset($queryDataItem[1])){
+                $queryData[$queryDataItem[0]] = $queryDataItem[1];
+            }
+        }
+        $params = [];
+        if(isset($queryData['params'])){
+            $params = $queryData['params'];
+        }
+        $content = $this->loadSitemapIndexContent($params);
+        echo $content;
+        die();
+    }
+
+    public function loadSitemapIndexContent($params){
+        $output = [];
+        $output[] = '<?xml version="1.0" encoding="UTF-8"?>';
+        $output[] = '<sitemapindex xmlns="http://www.google.com/schemas/sitemap/0.84">';
+            $output[] = '<sitemap>';
+                $output[] = '<loc>'.site_url('/sitemap.xml').'</loc>';
+                $output[] = '<lastmod>'.date('c').'</lastmod>';
+            $output[] = '</sitemap>';
+            $output[] = '<sitemap>';
+                $output[] = '<loc>'.site_url('/artisan/sitemap.xml').'</loc>';
+                $output[] = '<lastmod>'.date('c').'</lastmod>';
+            $output[] = '</sitemap>';
+        $output[] = '</sitemapindex>';
+        return implode("\n",$output);
     }
 
     public function loadSitemapContent($uri){
@@ -129,6 +171,7 @@ class ArtisanSEO
     //Add "artisan_sitemap" var to wp
     public function registerQueryVariables($vars) {
         array_push($vars, 'artisan_sitemap');
+        array_push($vars, 'artisan_sitemap_index');
         return $vars;
     }
 
