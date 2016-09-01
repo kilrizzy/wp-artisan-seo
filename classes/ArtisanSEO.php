@@ -80,11 +80,13 @@ class ArtisanSEO
         if(!empty($wp_query->query_vars["artisan_sitemap"])) {
             $wp_query->is_404 = false;
             $wp_query->is_feed = true;
+            $this->triggerSitemapHeaders();
             $this->showSitemap($wp_query->query_vars["artisan_sitemap"]);
         }
         if(!empty($wp_query->query_vars["artisan_sitemap_index"])) {
             $wp_query->is_404 = false;
             $wp_query->is_feed = true;
+            $this->triggerSitemapHeaders();
             $this->showSitemapIndex($wp_query->query_vars["artisan_sitemap_index"]);
         }
     }
@@ -105,6 +107,11 @@ class ArtisanSEO
         $content = $this->loadSitemapContent($params);
         echo $content;
         die();
+    }
+
+    public function triggerSitemapHeaders(){
+        header('Content-Type: text/xml; charset=utf-8');
+        header('X-Robots-Tag: noindex');
     }
 
     public function showSitemapIndex($options) {
